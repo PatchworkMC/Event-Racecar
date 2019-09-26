@@ -1,203 +1,50 @@
-plugins {
-    id 'org.ajoberstar.reckon' version '0.11.0'
-    id 'org.ajoberstar.grgit' version '3.1.1'
-    id 'com.github.ben-manes.versions' version '0.22.0'
-    id 'me.champeau.gradle.jmh' version '0.4.8'
-}
 apply plugin: 'maven'
 apply plugin: 'java-library'
 apply plugin: 'eclipse'
-apply plugin: 'jacoco'
 apply plugin: 'maven-publish'
 
-group 'net.minecraftforge'
-
 sourceCompatibility = 1.8
-targetCompatibility = 1.8
+version = '0.1.0'
 
-jacoco {
-    toolVersion = '0.8.2'
+def ENV = System.getenv()
+if (ENV.BUILD_NUMBER) {
+	version = version + "." + "${System.getenv().BUILD_NUMBER}"
 }
 
-reckon {
-    scopeFromProp()
-    stageFromProp('milestone', 'rc', 'final')
-}
-
-reckonTagCreate.dependsOn check
-
-dependencyUpdates.resolutionStrategy {
-    componentSelection { rules ->
-        rules.all { ComponentSelection selection ->
-            boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'preview'].any { qualifier ->
-                selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
-            }
-            if (rejected) {
-                selection.reject('Release candidate')
-            }
-        }
-    }
-}
-
-test {
-    useJUnitPlatform()
-    forkEvery 1
-}
-
-sourceSets {
-    mlservice
-    testJars
-}
-
-
-ext.sharedManifest = manifest {
-    attributes(['Specification-Title': 'eventbus',
-                'Specification-Vendor': 'Forge',
-                'Specification-Version': '1', // Currently version 1 of the eventbus specification
-                'Implementation-Title': project.name,
-                'Implementation-Version': "${version}+${System.getenv("BUILD_NUMBER")?:0}+${grgit.head().abbreviatedId}",
-                'Implementation-Vendor' :'Forge',
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'Git-Commit': grgit.head().abbreviatedId,
-                'Git-Branch': grgit.branch.current().getName() ],
-            'net/minecraftforge/eventbus/service/')
-}
-
-task mlserviceJar(type: Jar) {
-    archiveClassifier = 'service'
-    from sourceSets.main.output
-    from sourceSets.mlservice.output
-    manifest = project.manifest {
-        from sharedManifest
-    }
-}
-
-jar {
-    manifest = project.manifest {
-        from sharedManifest
-    }
-}
-
-task testsJar(type: Jar) {
-    archiveClassifier = 'testsjar'
-    from sourceSets.testJars.output
-}
-
-task sourcesJar(type: Jar) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
-    from sourceSets.mlservice.allSource
-}
-
-
-build.dependsOn mlserviceJar
+group 'net.coderbot'
+archivesBaseName = 'patchwork-eventbus'
 
 repositories {
-    mavenCentral()
-    maven {
-        name = 'forge'
-        url = 'http://files.minecraftforge.net/maven'
-    }
+	mavenCentral()
 }
 
 dependencies {
-    testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.+')
-    testImplementation('org.powermock:powermock-core:2.0.+')
-    testImplementation('cpw.mods:modlauncher:3.2.+')
-    testImplementation(sourceSets.mlservice.output)
-    testImplementation('org.junit.jupiter:junit-jupiter-engine:5.4.+')
-    testImplementation('org.apache.logging.log4j:log4j-core:2.11.+')
-    testImplementation('com.lmax:disruptor:3.4.2')
-    testImplementation(sourceSets.testJars.runtimeClasspath)
-    testImplementation(sourceSets.mlservice.output)
-    testJarsImplementation(sourceSets.main.output)
-    implementation('org.ow2.asm:asm:6.2')
-    implementation('org.ow2.asm:asm-commons:6.2')
-    implementation('org.ow2.asm:asm-tree:6.2')
-    implementation('org.apache.logging.log4j:log4j-api:2.11.+')
-    implementation('cpw.mods:modlauncher:3.2.+:api')
-    implementation('com.google.code.findbugs:jsr305:3.0.2')
-    api('net.jodah:typetools:0.6.0')
-    mlserviceImplementation('cpw.mods:modlauncher:3.2.+:api')
-    mlserviceImplementation(sourceSets.main.output)
-    jmhImplementation(sourceSets.mlservice.output)
-    jmhImplementation('cpw.mods:modlauncher:3.2.+')
-    jmhImplementation("org.powermock:powermock-core:2.0.+")
-    jmhImplementation("org.ow2.asm:asm:6.2")
-    jmhImplementation("org.ow2.asm:asm-tree:6.2")
-    jmhImplementation("org.ow2.asm:asm-commons:6.2")
-    jmh("org.ow2.asm:asm:6.2")
+	implementation 'org.ow2.asm:asm:6.2'
+	implementation 'org.ow2.asm:asm-commons:6.2'
+	implementation 'org.ow2.asm:asm-tree:6.2'
+	implementation 'org.apache.logging.log4j:log4j-api:2.11.+'
+	implementation 'com.google.code.findbugs:jsr305:3.0.2'
+	api 'net.jodah:typetools:0.6.0'
 }
 
-jmh {
-    jvmArgs = ['-Djmh.separateClasspathJAR=true']
-    include = [ 'net.minecraftforge.eventbus.benchmarks.EventBusBenchmark' ]
-    benchmarkMode = ['avgt' ]
-    profilers = [ 'stack' ]
-    timeOnIteration = '5s'
-    warmup = '5s'
-    warmupIterations = 3
-    iterations = 3
-    fork = 3
-    timeUnit = 'ns'
-}
-
-tasks['jmh'].dependsOn(clean)
-
-artifacts {
-    archives jar
-    archives sourcesJar
-    archives testsJar
-    archives mlserviceJar
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
 }
 
 publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact mlserviceJar
-            pom {
-                name = 'Event Bus'
-                description = 'High performance Event Bus library'
-                url = 'https://github.com/MinecraftForge/eventbus'
-                scm {
-                    url = 'https://github.com/MinecraftForge/eventbus'
-                    connection = 'scm:git:git://github.com/MinecraftForge/eventbus.git'
-                    developerConnection = 'scm:git:git@github.com:MinecraftForge/eventbus.git'
-                }
-                issueManagement {
-                    system = 'github'
-                    url = 'https://github.com/MinecraftForge/eventbus/issues'
-                }
+	publications {
+		maven(MavenPublication) {
+			groupId 'net.coderbot'
+			artifactId "patchwork-eventbus"
+			version version
 
-                licenses {
-                    license {
-                        name = 'LGPLv2.1'
-                        url = 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt'
-                    }
-                }
+			artifact (jar)
+			artifact (sourcesJar)
+		}
+	}
+}
 
-                developers {
-                    developer {
-                        id = 'cpw'
-                        name = 'cpw'
-                    }
-                    developer {
-                        id = 'LexManos'
-                        name = 'LexManos'
-                    }
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            credentials {
-                username project.properties.forgeMavenUser?:'fake'
-                password project.properties.forgeMavenPassword?:'news'
-            }
-            url 'http://files.minecraftforge.net/maven/manage/upload'
-        }
-    }
+tasks.withType(JavaCompile) {
+	options.encoding = "UTF-8"
 }

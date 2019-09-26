@@ -27,19 +27,19 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Annotation to subscribe a method to an {@link Event}
- *
+ * <p>
  * This annotation can only be applied to single parameter methods, where the single parameter is a subclass of
  * {@link Event}.
- *
+ * <p>
  * Use {@link IEventBus#register(Object)} to submit either an Object instance or a {@link Class} to the event bus
  * for scanning to generate callback {@link IEventListener} wrappers.
- *
+ * <p>
  * The Event Bus system generates an ASM wrapper that dispatches to the marked method.
  */
 @Retention(value = RUNTIME)
 @Target(value = METHOD)
-public @interface SubscribeEvent
-{
-    EventPriority priority() default EventPriority.NORMAL;
-    boolean receiveCanceled() default false;
+public @interface SubscribeEvent {
+	EventPriority priority() default EventPriority.NORMAL;
+
+	boolean receiveCanceled() default false;
 }
