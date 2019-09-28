@@ -8,18 +8,14 @@ public enum EventBusEngine {
 	INSTANCE;
 
 	private final EventSubclassTransformer eventTransformer;
-	private final EventAccessTransformer accessTransformer;
 
 	EventBusEngine() {
 		LogManager.getLogger().debug(LogMarkers.EVENTBUS, "Loading EventBus transformer");
 		this.eventTransformer = new EventSubclassTransformer();
-		this.accessTransformer = new EventAccessTransformer();
 	}
 
 	public boolean processClass(final ClassNode classNode, final Type classType) {
-		boolean evtXform = eventTransformer.transform(classNode, classType).isPresent();
-		boolean axXform = accessTransformer.transform(classNode, classType);
-		return evtXform || axXform;
+		return eventTransformer.transform(classNode, classType).isPresent();
 	}
 
 	public boolean handlesClass(final Type classType) {
