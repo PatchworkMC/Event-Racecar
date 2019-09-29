@@ -135,7 +135,7 @@ public class Event {
 
 	@Deprecated //Unused by ASM generated code, kept for compatibility until we break version
 	protected ListenerList getParentListenerList() {
-		return EventListenerHelper.getListenerListInternal(this.getClass().getSuperclass(), false);
+		return EventListenerHelper.getListenerList(this.getClass().getSuperclass());
 	}
 
 	@Nullable
