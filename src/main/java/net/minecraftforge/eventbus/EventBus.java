@@ -63,10 +63,22 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 	}
 
 	private void registerClass(final Class<?> clazz) {
-		Arrays.stream(clazz.getMethods()).
+
+		Consumer<IEventBus> registrar = EventRegistrarRegistryImpl.INSTANCE.getStaticRegistrar(clazz);
+
+		if(registrar == null) {
+			// TODO: This doesn't handle the case of an event with no @SubscribeEvent annotations,
+			//  or where the registrar has not yet been registered.
+
+			throw new IllegalStateException("Missing static event registrar for " + clazz);
+		}
+
+		registrar.accept(this);
+
+		/*Arrays.stream(clazz.getMethods()).
 				filter(m -> Modifier.isStatic(m.getModifiers())).
 				filter(m -> m.isAnnotationPresent(SubscribeEvent.class)).
-				forEach(m -> registerListener(clazz, m, m));
+				forEach(m -> registerListener(clazz, m, m));*/
 	}
 
 	private Optional<Method> getDeclMethod(final Class<?> clz, final Method in) {
