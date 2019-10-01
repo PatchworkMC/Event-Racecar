@@ -28,3 +28,8 @@ code without every mod needing to do the same patches to the game.
 ## License
 
 Patchwork EventBus is a fork of MinecraftForge/EventBus and is licensed under the Lesser GNU General Public License v2.
+
+
+## Credits
+
+Credits to cpw, tterrag1098, mezz, LexManos, and ichttt for creating the MinecraftForge EventBus.
