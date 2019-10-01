@@ -156,9 +156,4 @@ public class Event {
 		DEFAULT,
 		ALLOW
 	}
-
-	@Retention(value = RUNTIME)
-	@Target(value = TYPE)
-	public @interface HasResult {
-	}
 }
