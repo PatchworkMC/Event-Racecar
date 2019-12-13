@@ -34,4 +34,10 @@ public final class EventRegistrarRegistryImpl implements EventRegistrarRegistry 
 	public Consumer<IEventBus> getStaticRegistrar(Class clazz) {
 		return staticRegistrars.get(clazz);
 	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public BiConsumer<Object, IEventBus> getInstanceRegistrar(Class clazz) {
+		return instanceRegistrars.get(clazz);
+	}
 }

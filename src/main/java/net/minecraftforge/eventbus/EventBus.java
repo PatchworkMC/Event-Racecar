@@ -24,12 +24,10 @@ import net.minecraftforge.eventbus.api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -63,50 +61,58 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 	}
 
 	private void registerClass(final Class<?> clazz) {
+		final Consumer<IEventBus> registrar = EventRegistrarRegistryImpl.INSTANCE.getStaticRegistrar(clazz);
 
-		Consumer<IEventBus> registrar = EventRegistrarRegistryImpl.INSTANCE.getStaticRegistrar(clazz);
-
-		if(registrar == null) {
+		if (registrar == null) {
 			// TODO: This doesn't handle the case of an event with no @SubscribeEvent annotations,
 			//  or where the registrar has not yet been registered.
 
-			throw new IllegalStateException("Missing static event registrar for " + clazz);
+			System.err.println("Missing static event registrar for " + clazz);
+
+			return;
 		}
 
 		registrar.accept(this);
-
-		/*Arrays.stream(clazz.getMethods()).
-				filter(m -> Modifier.isStatic(m.getModifiers())).
-				filter(m -> m.isAnnotationPresent(SubscribeEvent.class)).
-				forEach(m -> registerListener(clazz, m, m));*/
 	}
 
-	private Optional<Method> getDeclMethod(final Class<?> clz, final Method in) {
-		try {
-			return Optional.of(clz.getDeclaredMethod(in.getName(), in.getParameterTypes()));
-		} catch (NoSuchMethodException nse) {
-			return Optional.empty();
+	@SuppressWarnings("unchecked")
+	private void registerObject(final Class<?> clazz, final Object obj, final boolean required) {
+		final BiConsumer<Object, IEventBus> registrar = (BiConsumer<Object, IEventBus>)EventRegistrarRegistryImpl.INSTANCE.getInstanceRegistrar(clazz);
+
+		if(registrar == null) {
+			if(required) {
+				// TODO: This doesn't handle the case of an event with no @SubscribeEvent annotations,
+				//  or where the registrar has not yet been registered.
+
+				System.err.println("Missing instance event registrar for " + clazz);
+			}
+
+			return;
 		}
 
-	}
+		registrar.accept(obj, this);
 
-	private void registerObject(final Object obj) {
 		final HashSet<Class<?>> classes = new HashSet<>();
-		typesFor(obj.getClass(), classes);
-		Arrays.stream(obj.getClass().getMethods()).
-				filter(m -> !Modifier.isStatic(m.getModifiers())).
-				forEach(m -> classes.stream().
-						map(c -> getDeclMethod(c, m)).
-						filter(rm -> rm.isPresent() && rm.get().isAnnotationPresent(SubscribeEvent.class)).
-						findFirst().
-						ifPresent(rm -> registerListener(obj, m, rm.get())));
+		typesFor(clazz, classes);
+
+		classes.remove(clazz);
+
+		for(Class<?> subclazz: classes) {
+			// TODO: Cases where both a subclass and a superclass have an annotation on a method are not handled here!
+
+			registerObject(subclazz, obj, false);
+		}
 	}
 
 
 	private void typesFor(final Class<?> clz, final Set<Class<?>> visited) {
-		if (clz.getSuperclass() == null) return;
+		if (clz.getSuperclass() == null) {
+			return;
+		}
+
 		typesFor(clz.getSuperclass(), visited);
 		Arrays.stream(clz.getInterfaces()).forEach(i -> typesFor(i, visited));
+
 		visited.add(clz);
 	}
 
@@ -119,29 +125,8 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 		if (target.getClass() == Class.class) {
 			registerClass((Class<?>) target);
 		} else {
-			registerObject(target);
+			registerObject(target.getClass(), target, true);
 		}
-	}
-
-	private void registerListener(final Object target, final Method method, final Method real) {
-		Class<?>[] parameterTypes = method.getParameterTypes();
-		if (parameterTypes.length != 1) {
-			throw new IllegalArgumentException(
-					"Method " + method + " has @SubscribeEvent annotation. " +
-							"It has " + parameterTypes.length + " arguments, " +
-							"but event handler methods require a single argument only."
-			);
-		}
-
-		Class<?> eventType = parameterTypes[0];
-
-		if (!Event.class.isAssignableFrom(eventType)) {
-			throw new IllegalArgumentException(
-					"Method " + method + " has @SubscribeEvent annotation, " +
-							"but takes an argument that is not an Event subtype : " + eventType);
-		}
-
-		register(eventType, target, real);
 	}
 
 	private <T extends Event> Predicate<T> passCancelled(final boolean ignored) {
@@ -215,16 +200,6 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 		T cast = (T) e;
 		if (filter.test(cast)) {
 			consumer.accept(cast);
-		}
-	}
-
-	private void register(Class<?> eventType, Object target, Method method) {
-		try {
-			final ASMEventHandler asm = new ASMEventHandler(target, method, IGenericEvent.class.isAssignableFrom(eventType));
-
-			addToListeners(target, eventType, asm, asm.getPriority());
-		} catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-			LOGGER.error(EVENTBUS, "Error registering event handler: {} {}", eventType, method, e);
 		}
 	}
 

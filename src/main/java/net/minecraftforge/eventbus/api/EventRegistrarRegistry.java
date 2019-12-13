@@ -39,4 +39,12 @@ public interface EventRegistrarRegistry {
 	 * @param <T> The type of object that will have its event handlers registered
 	 */
 	<T> void registerInstance(Class<T> clazz, BiConsumer<T, IEventBus> registrar);
+
+	/**
+	 * Gets a previously registered instance event registrar from the registry.
+	 *
+	 * @param clazz The class this registrar is acting on behalf of
+	 * @return A registrar that will register the event handlers of the class to the provided event bus
+	 */
+	<T> BiConsumer<T, IEventBus> getInstanceRegistrar(Class<T> clazz);
 }
