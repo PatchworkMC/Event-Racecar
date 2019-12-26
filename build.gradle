@@ -3,7 +3,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
+		classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
 	}
 }
 
@@ -21,7 +21,7 @@ if (ENV.BUILD_NUMBER) {
 	version = version + "." + "${System.getenv().BUILD_NUMBER}"
 }
 
-group 'net.coderbot'
+group 'com.patchworkmc'
 archivesBaseName = 'patchwork-eventbus'
 
 repositories {
@@ -56,8 +56,8 @@ shadowJar {
 publishing {
 	publications {
 		maven(MavenPublication) {
-			groupId 'net.coderbot'
-			artifactId "patchwork-eventbus"
+			groupId group
+			artifactId archivesBaseName
 			version version
 
 			artifact (shadowJar)
