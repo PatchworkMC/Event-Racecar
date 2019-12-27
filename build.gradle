@@ -6,13 +6,16 @@ buildscript {
 		classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
 	}
 }
-
-apply plugin: 'maven'
-apply plugin: 'java-library'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
+plugins {
+	id 'checkstyle'
+	id 'maven'
+	id 'java-library'
+	id 'eclipse'
+	id 'idea'
+	id 'maven-publish'
+	//id 'com.github.johnrengelman.shadow'
+}
 apply plugin: 'com.github.johnrengelman.shadow'
-
 sourceCompatibility = 1.8
 version = '0.1.2'
 
@@ -68,4 +71,9 @@ publishing {
 
 tasks.withType(JavaCompile) {
 	options.encoding = "UTF-8"
+}
+
+checkstyle {
+	configFile = rootProject.file("checkstyle.xml")
+	toolVersion = '8.25'
 }

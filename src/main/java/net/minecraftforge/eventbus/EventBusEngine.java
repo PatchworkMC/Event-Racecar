@@ -20,8 +20,8 @@ public enum EventBusEngine {
 
 	public boolean handlesClass(final Type classType) {
 		final String name = classType.getClassName();
-		return !(name.equals("net.minecraftforge.eventbus.api.Event") ||
-				name.startsWith("net.minecraft.") ||
-				name.indexOf('.') == -1);
+		return !(name.equals("net.minecraftforge.eventbus.api.Event")
+			|| name.startsWith("net.minecraft.")
+			|| name.indexOf('.') == -1);
 	}
 }

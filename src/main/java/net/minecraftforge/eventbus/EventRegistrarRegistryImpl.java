@@ -1,12 +1,12 @@
 package net.minecraftforge.eventbus;
 
-import net.minecraftforge.eventbus.api.EventRegistrarRegistry;
-import net.minecraftforge.eventbus.api.IEventBus;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import net.minecraftforge.eventbus.api.EventRegistrarRegistry;
+import net.minecraftforge.eventbus.api.IEventBus;
 
 public final class EventRegistrarRegistryImpl implements EventRegistrarRegistry {
 	private Map<Class, Consumer<IEventBus>> staticRegistrars;
@@ -27,7 +27,7 @@ public final class EventRegistrarRegistryImpl implements EventRegistrarRegistry 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> void registerInstance(Class<T> clazz, BiConsumer<T, IEventBus> registrar) {
-		instanceRegistrars.put(clazz, (BiConsumer<Object, IEventBus>)registrar);
+		instanceRegistrars.put(clazz, (BiConsumer<Object, IEventBus>) registrar);
 	}
 
 	@Override

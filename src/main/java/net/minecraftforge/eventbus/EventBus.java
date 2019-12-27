@@ -19,19 +19,32 @@
 
 package net.minecraftforge.eventbus;
 
-import net.jodah.typetools.TypeResolver;
-import net.minecraftforge.eventbus.api.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
+import net.jodah.typetools.TypeResolver;
+import net.minecraftforge.eventbus.api.BusBuilder;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventListenerHelper;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.GenericEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.IEventExceptionHandler;
+import net.minecraftforge.eventbus.api.IEventListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class EventBus implements IEventExceptionHandler, IEventBus {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -50,8 +63,13 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
 	private EventBus(final IEventExceptionHandler handler, boolean trackPhase, boolean startShutdown) {
 		ListenerList.resize(busID + 1);
-		if (handler == null) exceptionHandler = this;
-		else exceptionHandler = handler;
+
+		if (handler == null) {
+			exceptionHandler = this;
+		} else {
+			exceptionHandler = handler;
+		}
+
 		this.trackPhases = trackPhase;
 		this.shutdown = startShutdown;
 	}
@@ -77,10 +95,11 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
 	@SuppressWarnings("unchecked")
 	private void registerObject(final Class<?> clazz, final Object obj, final boolean required) {
-		final BiConsumer<Object, IEventBus> registrar = (BiConsumer<Object, IEventBus>)EventRegistrarRegistryImpl.INSTANCE.getInstanceRegistrar(clazz);
+		//noinspection RedundantCast
+		final BiConsumer<Object, IEventBus> registrar = (BiConsumer<Object, IEventBus>) EventRegistrarRegistryImpl.INSTANCE.getInstanceRegistrar(clazz);
 
-		if(registrar == null) {
-			if(required) {
+		if (registrar == null) {
+			if (required) {
 				// TODO: This doesn't handle the case of an event with no @SubscribeEvent annotations,
 				//  or where the registrar has not yet been registered.
 
@@ -97,13 +116,12 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
 		classes.remove(clazz);
 
-		for(Class<?> subclazz: classes) {
+		for (Class<?> subclazz : classes) {
 			// TODO: Cases where both a subclass and a superclass have an annotation on a method are not handled here!
 
 			registerObject(subclazz, obj, false);
 		}
 	}
-
 
 	private void typesFor(final Class<?> clz, final Set<Class<?>> visited) {
 		if (clz.getSuperclass() == null) {
@@ -180,14 +198,18 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 	@SuppressWarnings("unchecked")
 	private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
 		final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
+
 		if ((Class<?>) eventClass == TypeResolver.Unknown.class) {
-			LOGGER.error(EVENTBUS, "Failed to resolve handler for \"{}\"", consumer.toString());
-			throw new IllegalStateException("Failed to resolve consumer event type: " + consumer.toString());
+			LOGGER.error(EVENTBUS, "Failed to resolve handler for \"{}\"", consumer);
+			throw new IllegalStateException("Failed to resolve consumer event type: " + consumer);
 		}
-		if (Objects.equals(eventClass, Event.class))
-			LOGGER.warn(EVENTBUS, "Attempting to add a Lambda listener with computed generic type of Event. " +
-					"Are you sure this is what you meant? NOTE : there are complex lambda forms where " +
-					"the generic type information is erased and cannot be recovered at runtime.");
+
+		if (Objects.equals(eventClass, Event.class)) {
+			LOGGER.warn(EVENTBUS, "Attempting to add a Lambda listener with computed generic type of Event. "
+					+ "Are you sure this is what you meant? NOTE : there are complex lambda forms where "
+					+ "the generic type information is erased and cannot be recovered at runtime.");
+		}
+
 		addListener(priority, filter, eventClass, consumer);
 	}
 
@@ -198,6 +220,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 	@SuppressWarnings("unchecked")
 	private <T extends Event> void doCastFilter(final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Event e) {
 		T cast = (T) e;
+
 		if (filter.test(cast)) {
 			consumer.accept(cast);
 		}
@@ -213,8 +236,11 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 	@Override
 	public void unregister(Object object) {
 		List<IEventListener> list = listeners.remove(object);
-		if (list == null)
+
+		if (list == null) {
 			return;
+		}
+
 		for (IEventListener listener : list) {
 			ListenerList.unregisterAll(busID, listener);
 		}
@@ -222,19 +248,26 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
 	@Override
 	public boolean post(Event event) {
-		if (shutdown) return false;
+		if (shutdown) {
+			return false;
+		}
 
 		IEventListener[] listeners = event.getListenerList().getListeners(busID);
 		int index = 0;
+
 		try {
 			for (; index < listeners.length; index++) {
-				if (!trackPhases && Objects.equals(listeners[index].getClass(), EventPriority.class)) continue;
+				if (!trackPhases && Objects.equals(listeners[index].getClass(), EventPriority.class)) {
+					continue;
+				}
+
 				listeners[index].invoke(event);
 			}
 		} catch (Throwable throwable) {
 			exceptionHandler.handleException(this, event, listeners, index, throwable);
 			throw throwable;
 		}
+
 		return event.isCancelable() && event.isCanceled();
 	}
 
