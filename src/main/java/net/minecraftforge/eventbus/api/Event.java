@@ -19,25 +19,22 @@
 
 package net.minecraftforge.eventbus.api;
 
-import net.minecraftforge.eventbus.EventSubclassTransformer;
-import net.minecraftforge.eventbus.ListenerList;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.util.Objects;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import net.minecraftforge.eventbus.EventSubclassTransformer;
+import net.minecraftforge.eventbus.ListenerList;
 
 /**
- * Base Event class that all other events are derived from
+ * Base Event class that all other events are derived from.
  */
 public class Event {
 	private boolean isCanceled = false;
 	private Result result = Result.DEFAULT;
 	private EventPriority phase = null;
+
 	public Event() {
 		setup();
 	}
@@ -46,9 +43,8 @@ public class Event {
 	 * Determine if this function is cancelable at all.
 	 *
 	 * @return If access to setCanceled should be allowed
-	 * <p>
-	 * Note:
-	 * Events with the Cancelable annotation will have this method automatically added to return true.
+	 * <p>Note:
+	 * Events with the Cancelable annotation will have this method automatically added to return true.</p>
 	 */
 	public boolean isCancelable() {
 		return false;
@@ -67,25 +63,26 @@ public class Event {
 	 * Sets the cancel state of this event. Note, not all events are cancelable, and any attempt to
 	 * invoke this method on an event that is not cancelable (as determined by {@link #isCancelable}
 	 * will result in an {@link UnsupportedOperationException}.
-	 * <p>
-	 * The functionality of setting the canceled state is defined on a per-event bases.
+	 *
+	 * <p>The functionality of setting the canceled state is defined on a per-event bases.
 	 *
 	 * @param cancel The new canceled value
 	 */
 	public void setCanceled(boolean cancel) {
 		if (!isCancelable()) {
 			throw new UnsupportedOperationException(
-					"Attempted to call Event#setCanceled() on a non-cancelable event of type: "
-							+ this.getClass().getCanonicalName()
+				"Attempted to call Event#setCanceled() on a non-cancelable event of type: "
+					+ this.getClass().getCanonicalName()
 			);
 		}
+
 		isCanceled = cancel;
 	}
 
 	/**
 	 * Determines if this event expects a significant result value.
-	 * <p>
-	 * Note:
+	 *
+	 * <p>Note:
 	 * Events with the HasResult annotation will have this method automatically added to return true.
 	 */
 	public boolean hasResult() {
@@ -93,7 +90,7 @@ public class Event {
 	}
 
 	/**
-	 * Returns the value set as the result of this event
+	 * Returns the value set as the result of this event.
 	 */
 	public Result getResult() {
 		return result;
@@ -102,8 +99,8 @@ public class Event {
 	/**
 	 * Sets the result value for this event, not all events can have a result set, and any attempt to
 	 * set a result for a event that isn't expecting it will result in a IllegalArgumentException.
-	 * <p>
-	 * The functionality of setting the result is defined on a per-event bases.
+	 *
+	 * <p>The functionality of setting the result is defined on a per-event bases.
 	 *
 	 * @param value The new result
 	 */
@@ -122,8 +119,8 @@ public class Event {
 	/**
 	 * Returns a ListenerList object that contains all listeners
 	 * that are registered to this event.
-	 * <p>
-	 * Note: for better efficiency, this gets overridden automatically
+	 *
+	 * <p>Note: for better efficiency, this gets overridden automatically
 	 * using a Transformer, there is no need to override it yourself.
 	 *
 	 * @return Listener List
@@ -143,11 +140,16 @@ public class Event {
 		return this.phase;
 	}
 
-	public void setPhase(@Nonnull EventPriority value) {
+	public void setPhase(
+			@Nonnull
+			EventPriority value) {
 		Objects.requireNonNull(value, "setPhase argument must not be null");
 		int prev = phase == null ? -1 : phase.ordinal();
-		if (prev >= value.ordinal())
+
+		if (prev >= value.ordinal()) {
 			throw new IllegalArgumentException("Attempted to set event phase to " + value + " when already " + phase);
+		}
+
 		phase = value;
 	}
 

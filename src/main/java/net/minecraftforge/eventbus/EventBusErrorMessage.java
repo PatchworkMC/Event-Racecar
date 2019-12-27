@@ -1,12 +1,12 @@
 package net.minecraftforge.eventbus;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventListener;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.util.StringBuilderFormattable;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 public class EventBusErrorMessage implements Message, StringBuilderFormattable {
 	private final Event event;
@@ -43,13 +43,14 @@ public class EventBusErrorMessage implements Message, StringBuilderFormattable {
 
 	@Override
 	public void formatTo(final StringBuilder buffer) {
-		buffer.
-				append("Exception caught during firing event: ").append(throwable.getMessage()).append('\n').
-				append("\tIndex: ").append(index).append('\n').
-				append("\tListeners:\n");
+		buffer
+			.append("Exception caught during firing event: ").append(throwable.getMessage()).append('\n')
+			.append("\tIndex: ").append(index).append('\n')
+			.append("\tListeners:\n");
 		for (int x = 0; x < listeners.length; x++) {
 			buffer.append("\t\t").append(x).append(": ").append(listeners[x]).append('\n');
 		}
+
 		final StringWriter sw = new StringWriter();
 		throwable.printStackTrace(new PrintWriter(sw));
 		buffer.append(sw.getBuffer());

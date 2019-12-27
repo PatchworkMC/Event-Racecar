@@ -19,8 +19,6 @@
 
 package net.minecraftforge.eventbus.api;
 
-import net.minecraftforge.eventbus.ListenerList;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -30,17 +28,19 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import net.minecraftforge.eventbus.ListenerList;
+
 public class EventListenerHelper {
-	private final static Map<Class<?>, ListenerList> listeners = new IdentityHashMap<>();
+	private static final Map<Class<?>, ListenerList> listeners = new IdentityHashMap<>();
 	private static ReadWriteLock lock = new ReentrantReadWriteLock(true);
 
 	/**
 	 * Returns a {@link ListenerList} object that contains all listeners
 	 * that are registered to this event class.
-	 * <p>
-	 * This supports abstract classes that cannot be instantiated.
-	 * <p>
-	 * Note: this is much slower than the instance method {@link Event#getListenerList()}.
+	 *
+	 * <p>This supports abstract classes that cannot be instantiated.
+	 *
+	 * <p>Note: this is much slower than the instance method {@link Event#getListenerList()}.
 	 * For performance when emitting events, always call that method instead.
 	 */
 	public static ListenerList getListenerList(Class<?> eventClass) {
@@ -53,6 +53,7 @@ public class EventListenerHelper {
 		readLock.lock();
 		ListenerList listenerList = listeners.get(eventClass);
 		readLock.unlock();
+
 		// if there's no entry, we'll end up here
 		if (listenerList == null) {
 			// Let's pre-compute our new listener list value. This will possibly call parents' listener list
@@ -72,6 +73,7 @@ public class EventListenerHelper {
 			readLock.unlock();
 			writeLock.unlock();
 		}
+
 		return listenerList;
 	}
 

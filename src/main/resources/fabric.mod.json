@@ -2,18 +2,16 @@
   "schemaVersion": 1,
   "id": "patchwork-eventbus",
   "version": "0.1.1",
-
   "name": "Patchwork EventBus",
   "description": "A fork of the MinecraftForge EventBus tailored for Patchwork",
   "authors": [
-	"cpw",
-	"tterrag1098",
-	"mezz",
-	"LexManos",
-	"ichttt",
-	"coderbot"
+    "cpw",
+    "tterrag1098",
+    "mezz",
+    "LexManos",
+    "ichttt",
+    "coderbot"
   ],
-
   "license": "LGPL-2.1-only",
   "environment": "*"
 }

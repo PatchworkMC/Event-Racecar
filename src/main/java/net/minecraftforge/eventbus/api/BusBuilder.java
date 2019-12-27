@@ -3,7 +3,7 @@ package net.minecraftforge.eventbus.api;
 import net.minecraftforge.eventbus.EventBus;
 
 /**
- * Build a bus
+ * Build a bus.
  */
 public final class BusBuilder {
 	private IEventExceptionHandler exceptionHandler;

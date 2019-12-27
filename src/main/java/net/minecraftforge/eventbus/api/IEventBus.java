@@ -4,17 +4,17 @@ import java.util.function.Consumer;
 
 /**
  * EventBus API.
- * <p>
- * Register for events and post events.
- * <p>
- * Contains factory methods to construct an instance {@link #create()} and {@link #create(IEventExceptionHandler)}
+ *
+ * <p>Register for events and post events.
+ *
+ * <p>Contains factory methods to construct an instance {@link #create()} and {@link #create(IEventExceptionHandler)}
  */
 public interface IEventBus {
 	/**
 	 * Register an instance object or a Class, and add listeners for all {@link SubscribeEvent} annotated methods
 	 * found there.
-	 * <p>
-	 * Depending on what is passed as an argument, different listener creation behaviour is performed.
+	 *
+	 * <p>Depending on what is passed as an argument, different listener creation behaviour is performed.
 	 *
 	 * <dl>
 	 *     <dt>Object Instance</dt>
@@ -58,8 +58,8 @@ public interface IEventBus {
 
 	/**
 	 * Add a consumer listener with the specified {@link EventPriority} and potentially cancelled events.
-	 * <p>
-	 * Use this method when one of the other methods fails to determine the concrete {@link Event} subclass that is
+	 *
+	 * <p>Use this method when one of the other methods fails to determine the concrete {@link Event} subclass that is
 	 * intended to be subscribed to.
 	 *
 	 * @param priority         {@link EventPriority} for this listener
@@ -112,8 +112,8 @@ public interface IEventBus {
 	 * Add a consumer listener with the specified {@link EventPriority} and potentially cancelled events,
 	 * for a {@link GenericEvent} subclass, filtered to only be called for the specified
 	 * filter {@link Class}.
-	 * <p>
-	 * Use this method when one of the other methods fails to determine the concrete {@link GenericEvent} subclass that is
+	 *
+	 * <p>Use this method when one of the other methods fails to determine the concrete {@link GenericEvent} subclass that is
 	 * intended to be subscribed to.
 	 *
 	 * @param genericClassFilter A {@link Class} which the {@link GenericEvent} should be filtered for
@@ -128,17 +128,17 @@ public interface IEventBus {
 
 	/**
 	 * Unregister the supplied listener from this EventBus.
-	 * <p>
-	 * Removes all listeners from events.
-	 * <p>
-	 * NOTE: Consumers can be stored in a variable if unregistration is required for the Consumer.
+	 *
+	 * <p>Removes all listeners from events.
+	 *
+	 * <p>NOTE: Consumers can be stored in a variable if unregistration is required for the Consumer.
 	 *
 	 * @param object The object, {@link Class} or {@link Consumer} to unsubscribe.
 	 */
 	void unregister(Object object);
 
 	/**
-	 * Submit the event for dispatch to appropriate listeners
+	 * Submit the event for dispatch to appropriate listeners.
 	 *
 	 * @param event The event to dispatch to listeners
 	 * @return true if the event was {@link Cancelable} cancelled
@@ -147,11 +147,10 @@ public interface IEventBus {
 
 	/**
 	 * Shuts down this event bus.
-	 * <p>
-	 * No future events will be fired on this event bus, so any call to {@link #post(Event)} will be a no op after this method has been invoked
+	 *
+	 * <p>No future events will be fired on this event bus, so any call to {@link #post(Event)} will be a no op after this method has been invoked
 	 */
 	void shutdown();
-
 
 	void start();
 }
