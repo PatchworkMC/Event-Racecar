@@ -53,6 +53,7 @@ public class EventListenerHelper {
 		readLock.lock();
 		ListenerList listenerList = listeners.get(eventClass);
 		readLock.unlock();
+
 		// if there's no entry, we'll end up here
 		if (listenerList == null) {
 			// Let's pre-compute our new listener list value. This will possibly call parents' listener list
@@ -72,6 +73,7 @@ public class EventListenerHelper {
 			readLock.unlock();
 			writeLock.unlock();
 		}
+
 		return listenerList;
 	}
 
