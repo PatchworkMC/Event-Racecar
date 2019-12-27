@@ -13,15 +13,22 @@ plugins {
 	id 'eclipse'
 	id 'idea'
 	id 'maven-publish'
-	//id 'com.github.johnrengelman.shadow'
+	id 'com.jfrog.bintray' version '1.8.4'
 }
 apply plugin: 'com.github.johnrengelman.shadow'
 sourceCompatibility = 1.8
-version = '0.1.2'
-
 def ENV = System.getenv()
-if (ENV.BUILD_NUMBER) {
-	version = version + "." + "${System.getenv().BUILD_NUMBER}"
+if (ENV.bintray_user && ENV.bintray_key) {
+	def versionName = System.getenv("GITHUB_REF")
+	versionName = versionName.substring(10)
+	if (versionName.startsWith("v")) {
+		versionName = versionName.substring(1) //strip "v" in "v1.0.0" etc.
+	}
+	version = versionName
+} else if (ENV.GITHUB_SHA) {
+	version = System.getenv("GITHUB_SHA").substring(0, 9)
+} else {
+	version = 'LOCAL'
 }
 
 group 'com.patchworkmc'
@@ -56,19 +63,58 @@ shadowJar {
 	exclude "module-info.class"
 }
 
-publishing {
-	publications {
-		maven(MavenPublication) {
-			groupId group
-			artifactId archivesBaseName
-			version version
+bintray {
+	user = project.hasProperty('bintrayUser') ? project.getProperty('bintrayUser') : System.getenv('bintray_user')
+	key = project.hasProperty('bintrayKey') ? project.getProperty('bintrayKey') : System.getenv('bintray_key')
+	publish = true
+	override = true
+	publications = ['mavenJava']
+	pkg {
+		repo = project.bintrayRepo
+		name = project.name
+		user = bintray.user
+		userOrg = project.repoOwner
+		licenses = [project.codeLicense]
+		desc = project.description
+		websiteUrl = "https://github.com/${project.repoOwner}/${project.repoName}"
+		issueTrackerUrl = "https://github.com/${project.repoOwner}/${project.repoName}/issues"
+		vcsUrl = "https://github.com/${project.repoOwner}/${project.repoName}.git"
+		publicDownloadNumbers = true
 
-			artifact (shadowJar)
-			artifact (sourcesJar)
+		githubRepo = "${project.repoOwner}/${project.repoName}"
+		version {
+			name = project.version
+			released = new Date()
 		}
 	}
 }
 
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			pom {
+				name = project.name
+				description = project.description
+				url = "https://github.com/${project.repoOwner}/${project.repoName}"
+				licenses {
+					license {
+						name = project.codeLicense
+					}
+				}
+
+				scm {
+					url = "https://github.com/${project.repoOwner}/${project.repoName}"
+				}
+			}
+
+			// add all the jars that should be included when publishing to maven
+			afterEvaluate {
+				artifact shadowJar
+				artifact sourcesJar
+			}
+		}
+	}
+}
 tasks.withType(JavaCompile) {
 	options.encoding = "UTF-8"
 }
