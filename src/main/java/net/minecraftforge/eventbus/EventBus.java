@@ -22,11 +22,9 @@ package net.minecraftforge.eventbus;
 import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
