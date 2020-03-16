@@ -24,7 +24,6 @@ import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -111,15 +110,14 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
 		registrar.accept(obj, this);
 
-		final HashSet<Class<?>> classes = new HashSet<>();
-		typesFor(clazz, classes);
+		Class<?> superclass = clazz.getSuperclass();
 
-		classes.remove(clazz);
+		if (superclass != null) {
+			registerObject(superclass, obj, false);
+		}
 
-		for (Class<?> subclazz : classes) {
-			// TODO: Cases where both a subclass and a superclass have an annotation on a method are not handled here!
-
-			registerObject(subclazz, obj, false);
+		for (Class<?> currInterface : clazz.getInterfaces()) {
+			registerObject(currInterface, obj, false);
 		}
 	}
 
