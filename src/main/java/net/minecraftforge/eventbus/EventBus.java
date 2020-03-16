@@ -89,6 +89,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 			return;
 		}
 
+		// TODO: Track the added events for a later unregister() call
 		registrar.accept(this);
 	}
 
@@ -108,6 +109,7 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 			return;
 		}
 
+		// TODO: Track the added events for a later unregister() call
 		registrar.accept(obj, this);
 
 		Class<?> superclass = clazz.getSuperclass();
@@ -119,17 +121,6 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 		for (Class<?> currInterface : clazz.getInterfaces()) {
 			registerObject(currInterface, obj, false);
 		}
-	}
-
-	private void typesFor(final Class<?> clz, final Set<Class<?>> visited) {
-		if (clz.getSuperclass() == null) {
-			return;
-		}
-
-		typesFor(clz.getSuperclass(), visited);
-		Arrays.stream(clz.getInterfaces()).forEach(i -> typesFor(i, visited));
-
-		visited.add(clz);
 	}
 
 	@Override
@@ -212,11 +203,21 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 	}
 
 	private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
-		addToListeners(consumer, eventClass, e -> doCastFilter(filter, eventClass, consumer, e), priority);
+		addListener(priority, filter, eventClass, consumer, consumer);
+	}
+
+	private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Object context) {
+		IEventListener listener = event -> doCastFilter(filter, consumer, event);
+
+		ListenerList listenerList = EventListenerHelper.getListenerList(eventClass);
+		listenerList.register(busID, priority, listener);
+
+		List<IEventListener> others = listeners.computeIfAbsent(context, k -> Collections.synchronizedList(new ArrayList<>()));
+		others.add(listener);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T extends Event> void doCastFilter(final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Event e) {
+	private <T extends Event> void doCastFilter(final Predicate<? super T> filter, final Consumer<T> consumer, final Event e) {
 		T cast = (T) e;
 
 		if (filter.test(cast)) {
@@ -224,18 +225,17 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 		}
 	}
 
-	private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority) {
-		ListenerList listenerList = EventListenerHelper.getListenerList(eventType);
-		listenerList.register(busID, priority, listener);
-		List<IEventListener> others = listeners.computeIfAbsent(target, k -> Collections.synchronizedList(new ArrayList<>()));
-		others.add(listener);
-	}
-
 	@Override
 	public void unregister(Object object) {
 		List<IEventListener> list = listeners.remove(object);
 
 		if (list == null) {
+			// ie, registered with registerObject / registerClass
+			// this message assumes that classes that implement an unrelated consumer interface and are also event listeners about to be unregistered don't exist.
+			if (!Consumer.class.isAssignableFrom(object.getClass())) {
+				LOGGER.warn("Attempted to unregister {} (class {}) from the EventBus, unregistering non-consumer Objects isn't properly supported currently", object, object.getClass());
+			}
+
 			return;
 		}
 
