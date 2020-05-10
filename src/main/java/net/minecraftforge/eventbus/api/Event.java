@@ -24,7 +24,6 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraftforge.eventbus.EventSubclassTransformer;
 import net.minecraftforge.eventbus.ListenerList;
 
 /**
@@ -120,18 +119,17 @@ public class Event {
 	 * Returns a ListenerList object that contains all listeners
 	 * that are registered to this event.
 	 *
-	 * <p>Note: for better efficiency, this gets overridden automatically
-	 * using a Transformer, there is no need to override it yourself.
+	 * <p>This is a simple redirect to {@link EventListenerHelper}.</p>
 	 *
-	 * @return Listener List
-	 * @see EventSubclassTransformer
+	 * @return The unique ListenerList for this event. Only one ListenerList should ever exist for a given Event class.
 	 */
-	public ListenerList getListenerList() {
-		return EventListenerHelper.getListenerListInternal(this.getClass(), true);
+	public final ListenerList getListenerList() {
+		return EventListenerHelper.getListenerList(this.getClass());
 	}
 
-	@Deprecated //Unused by ASM generated code, kept for compatibility until we break version
-	protected ListenerList getParentListenerList() {
+	// Unused by ASM generated code, kept for compatibility until we break version
+	@Deprecated
+	protected final ListenerList getParentListenerList() {
 		return EventListenerHelper.getListenerList(this.getClass().getSuperclass());
 	}
 
