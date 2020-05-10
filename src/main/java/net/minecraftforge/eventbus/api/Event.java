@@ -108,10 +108,10 @@ public class Event {
 	}
 
 	/**
-	 * Called by the base constructor, this is used by ASM generated
-	 * event classes to setup various functionality such as the listener list.
+	 * Called by the base constructor, otherwise this is unused.
 	 */
-	@Deprecated //Unused by ASM generated code, kept for compatibility until we break version
+	// Unused by EventBus, kept for compatibility until we break version
+	@Deprecated
 	protected void setup() {
 	}
 
@@ -127,7 +127,7 @@ public class Event {
 		return EventListenerHelper.getListenerList(this.getClass());
 	}
 
-	// Unused by ASM generated code, kept for compatibility until we break version
+	// Unused by EventBus, kept for compatibility until we break version
 	@Deprecated
 	protected final ListenerList getParentListenerList() {
 		return EventListenerHelper.getListenerList(this.getClass().getSuperclass());
