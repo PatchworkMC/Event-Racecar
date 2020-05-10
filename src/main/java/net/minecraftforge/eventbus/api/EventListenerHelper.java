@@ -19,9 +19,6 @@
 
 package net.minecraftforge.eventbus.api;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -40,14 +37,9 @@ public class EventListenerHelper {
 	 *
 	 * <p>This supports abstract classes that cannot be instantiated.
 	 *
-	 * <p>Note: this is much slower than the instance method {@link Event#getListenerList()}.
-	 * For performance when emitting events, always call that method instead.
+	 * <p>Note: this method is currently very slow.
 	 */
 	public static ListenerList getListenerList(Class<?> eventClass) {
-		return getListenerListInternal(eventClass, false);
-	}
-
-	static ListenerList getListenerListInternal(Class<?> eventClass, boolean fromInstanceCall) {
 		final Lock readLock = lock.readLock();
 		// to read the listener list, let's take the read lock
 		readLock.lock();
@@ -59,7 +51,7 @@ public class EventListenerHelper {
 			// Let's pre-compute our new listener list value. This will possibly call parents' listener list
 			// evaluations. as such, we need to make sure we don't hold a lock when we do this, otherwise
 			// we could conflict with the class init global lock that is implicitly present
-			listenerList = computeListenerList(eventClass, fromInstanceCall);
+			listenerList = computeListenerList(eventClass);
 			// having computed a listener list, we'll grab the write lock.
 			// We'll also take the read lock, so we're very clear we have _both_ locks here.
 			final Lock writeLock = lock.writeLock();
@@ -77,29 +69,13 @@ public class EventListenerHelper {
 		return listenerList;
 	}
 
-	private static ListenerList computeListenerList(Class<?> eventClass, boolean fromInstanceCall) {
+	private static ListenerList computeListenerList(Class<?> eventClass) {
 		if (eventClass == Event.class) {
 			return new ListenerList();
 		}
 
-		if (fromInstanceCall || Modifier.isAbstract(eventClass.getModifiers())) {
-			Class<?> superclass = eventClass.getSuperclass();
-			ListenerList parentList = getListenerList(superclass);
-			return new ListenerList(parentList);
-		}
+		ListenerList parentList = getListenerList(eventClass.getSuperclass());
 
-		try {
-			Constructor<?> ctr = eventClass.getConstructor();
-			ctr.setAccessible(true);
-			Event event = (Event) ctr.newInstance();
-			return event.getListenerList();
-		} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-			throw new RuntimeException("Error computing listener list for " + eventClass.getName(), e);
-		}
-	}
-
-	private static void clearAll() {
-		listeners.clear();
-		lock = new ReentrantReadWriteLock(true);
+		return new ListenerList(parentList);
 	}
 }
