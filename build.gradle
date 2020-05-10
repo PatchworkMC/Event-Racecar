@@ -31,7 +31,7 @@ if (ENV.bintray_user && ENV.bintray_key) {
 	version = 'LOCAL'
 }
 
-group 'com.patchworkmc'
+group 'net.patchworkmc'
 archivesBaseName = 'patchwork-eventbus'
 
 repositories {
