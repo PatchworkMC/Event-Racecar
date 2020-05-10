@@ -7,22 +7,21 @@ import java.util.function.Consumer;
  *
  * <p>Register for events and post events.
  *
- * <p>Contains factory methods to construct an instance {@link #create()} and {@link #create(IEventExceptionHandler)}
+ * <p>To construct event bus instances, it is recommended to use {@link BusBuilder}.
  */
 public interface IEventBus {
 	/**
-	 * Register an instance object or a Class, and add listeners for all {@link SubscribeEvent} annotated methods
-	 * found there.
+	 * Register an instance object or a Class, and add listeners for using an already registered event registrar.
 	 *
 	 * <p>Depending on what is passed as an argument, different listener creation behaviour is performed.
 	 *
 	 * <dl>
 	 *     <dt>Object Instance</dt>
-	 *     <dd>Scanned for <em>non-static</em> methods annotated with {@link SubscribeEvent} and creates listeners for
-	 *     each method found.</dd>
+	 *     <dd>The event registrar given by {@link EventRegistrarRegistry#getInstanceRegistrar(Class)} is invoked with
+	 *     an instance of this event bus.</dd>
 	 *     <dt>Class Instance</dt>
-	 *     <dd>Scanned for <em>static</em> methods annotated with {@link SubscribeEvent} and creates listeners for
-	 *     each method found.</dd>
+	 *     <dd>The event registrar given by {@link EventRegistrarRegistry#getStaticRegistrar(Class)} is invoked with
+	 *     an instance of this event bus.</dd>
 	 * </dl>
 	 *
 	 * @param target Either a {@link Class} instance or an arbitrary object, for scanning and event listener creation
@@ -30,7 +29,7 @@ public interface IEventBus {
 	void register(Object target);
 
 	/**
-	 * Add a consumer listener with default {@link EventPriority#NORMAL} and not recieving cancelled events.
+	 * Add a consumer listener with default {@link EventPriority#NORMAL} and not receiving cancelled events.
 	 *
 	 * @param consumer Callback to invoke when a matching event is received
 	 * @param <T>      The {@link Event} subclass to listen for
@@ -50,7 +49,7 @@ public interface IEventBus {
 	 * Add a consumer listener with the specified {@link EventPriority} and potentially cancelled events.
 	 *
 	 * @param priority         {@link EventPriority} for this listener
-	 * @param receiveCancelled Indicate if this listener should receive events that have been {@link Cancelable} cancelled
+	 * @param receiveCancelled Indicate if this listener should receive events that have been {@link Event#isCanceled() cancelled}
 	 * @param consumer         Callback to invoke when a matching event is received
 	 * @param <T>              The {@link Event} subclass to listen for
 	 */
@@ -63,7 +62,7 @@ public interface IEventBus {
 	 * intended to be subscribed to.
 	 *
 	 * @param priority         {@link EventPriority} for this listener
-	 * @param receiveCancelled Indicate if this listener should receive events that have been {@link Cancelable} cancelled
+	 * @param receiveCancelled Indicate if this listener should receive events that have been {@link Event#isCanceled() cancelled}
 	 * @param eventType        The concrete {@link Event} subclass to subscribe to
 	 * @param consumer         Callback to invoke when a matching event is received
 	 * @param <T>              The {@link Event} subclass to listen for
@@ -101,7 +100,7 @@ public interface IEventBus {
 	 *
 	 * @param genericClassFilter A {@link Class} which the {@link GenericEvent} should be filtered for
 	 * @param priority           {@link EventPriority} for this listener
-	 * @param receiveCancelled   Indicate if this listener should receive events that have been {@link Cancelable} cancelled
+	 * @param receiveCancelled   Indicate if this listener should receive events that have been {@link Event#isCanceled() cancelled}
 	 * @param consumer           Callback to invoke when a matching event is received
 	 * @param <T>                The {@link GenericEvent} subclass to listen for
 	 * @param <F>                The {@link Class} to filter the {@link GenericEvent} for
@@ -118,7 +117,7 @@ public interface IEventBus {
 	 *
 	 * @param genericClassFilter A {@link Class} which the {@link GenericEvent} should be filtered for
 	 * @param priority           {@link EventPriority} for this listener
-	 * @param receiveCancelled   Indicate if this listener should receive events that have been {@link Cancelable} cancelled
+	 * @param receiveCancelled   Indicate if this listener should receive events that have been {@link Event#isCanceled() cancelled}
 	 * @param eventType          The concrete {@link GenericEvent} subclass to subscribe to
 	 * @param consumer           Callback to invoke when a matching event is received
 	 * @param <T>                The {@link GenericEvent} subclass to listen for
@@ -141,7 +140,7 @@ public interface IEventBus {
 	 * Submit the event for dispatch to appropriate listeners.
 	 *
 	 * @param event The event to dispatch to listeners
-	 * @return true if the event was {@link Cancelable} cancelled
+	 * @return true if the event was {@link Event#isCanceled() cancelled}
 	 */
 	boolean post(Event event);
 
