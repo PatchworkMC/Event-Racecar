@@ -19,8 +19,6 @@
 
 package net.minecraftforge.eventbus;
 
-import static net.minecraftforge.eventbus.LogMarkers.EVENTBUS;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,9 +40,13 @@ import net.minecraftforge.eventbus.api.IEventExceptionHandler;
 import net.minecraftforge.eventbus.api.IEventListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 public class EventBus implements IEventExceptionHandler, IEventBus {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Marker EVENTBUS = MarkerManager.getMarker("EVENTBUS");
+
 	private static AtomicInteger maxID = new AtomicInteger(0);
 	private final boolean trackPhases;
 	private final int busID = maxID.getAndIncrement();
