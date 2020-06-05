@@ -36,12 +36,16 @@ archivesBaseName = 'patchwork-eventbus'
 
 repositories {
 	mavenCentral()
+	maven {
+		name = 'forge'
+		url = 'http://files.minecraftforge.net/maven'
+	}
 }
 
 dependencies {
 	implementation 'org.apache.logging.log4j:log4j-api:2.8.1'
 	implementation 'com.google.code.findbugs:jsr305:3.0.2'
-	implementation 'net.jodah:typetools:0.6.0'
+	implementation 'net.jodah:typetools:0.8.+'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
