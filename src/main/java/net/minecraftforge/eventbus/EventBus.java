@@ -160,17 +160,12 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
 	@Override
 	public <T extends Event> void addExplicitListener(EventPriority priority, Consumer<T> consumer, Class<T> eventClass) {
-		addExplicitListener(priority, false, consumer, eventClass);
+		addListener(priority, false, eventClass, consumer);
 	}
 
 	@Override
 	public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
 		addListenerWithTypetools(priority, passCancelled(receiveCancelled), consumer);
-	}
-
-	@Override
-	public <T extends Event> void addExplicitListener(EventPriority priority, boolean receiveCancelled, Consumer<T> consumer, Class<T> eventClass) {
-		addListener(priority, receiveCancelled, eventClass, consumer);
 	}
 
 	@Override

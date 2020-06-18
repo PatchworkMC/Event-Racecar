@@ -59,7 +59,6 @@ public interface IEventBus {
 	 */
 	<T extends Event> void addListener(EventPriority priority, boolean receiveCancelled, Consumer<T> consumer);
 
-	<T extends Event> void addExplicitListener(EventPriority priority, boolean receiveCancelled, Consumer<T> consumer, Class<T> eventClass);
 	/**
 	 * Add a consumer listener with the specified {@link EventPriority} and potentially cancelled events.
 	 *
