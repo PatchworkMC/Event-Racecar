@@ -163,7 +163,6 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 		addListenerWithExplicitClass(priority, passCancelled(receiveCancelled), eventType, consumer);
 	}
 
-
 	@Override
 	public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final Consumer<T> consumer) {
 		addGenericListener(genericClassFilter, EventPriority.NORMAL, consumer);
