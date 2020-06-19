@@ -36,7 +36,9 @@ public interface IEventBus {
 	 */
 	<T extends Event> void addListener(Consumer<T> consumer);
 
-	<T extends Event> void addExplicitListener(Consumer<T> consumer, Class<T> eventClass);
+	default <T extends Event> void addExplicitListener(Consumer<T> consumer, Class<T> eventClass) {
+		addListener(EventPriority.NORMAL, false, eventClass, consumer);
+	}
 
 	/**
 	 * Add a consumer listener with the specified {@link EventPriority} and not receiving cancelled events.
@@ -47,7 +49,9 @@ public interface IEventBus {
 	 */
 	<T extends Event> void addListener(EventPriority priority, Consumer<T> consumer);
 
-	<T extends Event> void addExplicitListener(EventPriority priority, Consumer<T> consumer, Class<T> eventClass);
+	default <T extends Event> void addExplicitListener(EventPriority priority, Consumer<T> consumer, Class<T> eventClass) {
+		addListener(priority, false, eventClass, consumer);
+	}
 
 	/**
 	 * Add a consumer listener with the specified {@link EventPriority} and potentially cancelled events.
