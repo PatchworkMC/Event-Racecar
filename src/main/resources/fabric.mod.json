@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "patchwork-eventbus",
-  "version": "0.2.0",
+  "version": "2.1.0",
   "name": "Patchwork EventBus",
   "description": "A fork of the MinecraftForge EventBus, tailored for Patchwork",
   "authors": [
