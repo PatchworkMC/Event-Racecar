@@ -149,19 +149,18 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 		addListener(EventPriority.NORMAL, consumer);
 	}
 
-	@Override
 	public <T extends Event> void addListener(final EventPriority priority, final Consumer<T> consumer) {
 		addListener(priority, false, consumer);
 	}
 
 	@Override
 	public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
-		addListener(priority, passCancelled(receiveCancelled), consumer);
+		addListenerWithTypetools(priority, passCancelled(receiveCancelled), consumer);
 	}
 
 	@Override
 	public <T extends Event> void addListener(final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
-		addListener(priority, passCancelled(receiveCancelled), eventType, consumer);
+		addListenerWithExplicitClass(priority, passCancelled(receiveCancelled), eventType, consumer);
 	}
 
 	@Override
@@ -176,16 +175,16 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
 	@Override
 	public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Consumer<T> consumer) {
-		addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), consumer);
+		addListenerWithTypetools(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), consumer);
 	}
 
 	@Override
 	public <T extends GenericEvent<? extends F>, F> void addGenericListener(final Class<F> genericClassFilter, final EventPriority priority, final boolean receiveCancelled, final Class<T> eventType, final Consumer<T> consumer) {
-		addListener(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), eventType, consumer);
+		addListenerWithExplicitClass(priority, passGenericFilter(genericClassFilter).and(passCancelled(receiveCancelled)), eventType, consumer);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
+	private <T extends Event> void addListenerWithTypetools(final EventPriority priority, final Predicate<? super T> filter, final Consumer<T> consumer) {
 		final Class<T> eventClass = (Class<T>) TypeResolver.resolveRawArgument(Consumer.class, consumer.getClass());
 
 		if ((Class<?>) eventClass == TypeResolver.Unknown.class) {
@@ -199,14 +198,14 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 					+ "the generic type information is erased and cannot be recovered at runtime.");
 		}
 
-		addListener(priority, filter, eventClass, consumer);
+		addListenerWithExplicitClass(priority, filter, eventClass, consumer);
 	}
 
-	private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
-		addListener(priority, filter, eventClass, consumer, consumer);
+	private <T extends Event> void addListenerWithExplicitClass(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer) {
+		addListenerWithExplicitClass(priority, filter, eventClass, consumer, consumer);
 	}
 
-	private <T extends Event> void addListener(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Object context) {
+	private <T extends Event> void addListenerWithExplicitClass(final EventPriority priority, final Predicate<? super T> filter, final Class<T> eventClass, final Consumer<T> consumer, final Object context) {
 		IEventListener listener = event -> doCastFilter(filter, consumer, event);
 
 		ListenerList listenerList = EventListenerHelper.getListenerList(eventClass);
