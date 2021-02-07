@@ -1,9 +1,9 @@
-# Patchwork EventBus
+# Event Racecar: EventBus but simple
 
 This is a fork of MinecraftForge's EventBus, modified and stripped down for use in Patchwork. The goal of this project
 is to create an implementation of the Forge Event Bus that is has the same capabilities as the Forge EventBus, but
-without a need for any ASM or Reflection. The API for the most part remains the same, however, there are some key
-changes that were needed to facilitate stripping out ASM and Reflection usage.
+without a need for ASM, reflection, or ModLauncher. The API for the most part remains the same, however, there are some key
+changes that were needed to facilitate stripping out ASM and reflection usage.
 
 
 ## What does it do?
@@ -25,9 +25,24 @@ code without every mod needing to do the same patches to the game.
     * This eliminates the need for scanning classes with Reflection then using ASM to generate handlers.
  
 
+## Usage
+Event Racecar is hosted on the Patchwork Maven, courtesy of [TerraformersMC](https://www.terraformersmc.com/).
+
+```groovy
+repositories {
+    maven {
+        url "https://maven.patchworkmc.net"
+        name 'Patchwork'
+    }
+}
+
+dependencies {
+    implementation 'net.patchworkmc:event-racecar:VERSION'
+}
+```
 ## License
 
-Patchwork EventBus is a fork of MinecraftForge/EventBus and is licensed under the Lesser GNU General Public License v2.
+Event Racecar is a fork of MinecraftForge/EventBus and is licensed under the Lesser GNU General Public License v2.
 
 
 ## Credits

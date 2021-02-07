@@ -95,7 +95,6 @@ public class EventBus implements IEventExceptionHandler, IEventBus {
 
 	@SuppressWarnings("unchecked")
 	private void registerObject(final Class<?> clazz, final Object obj, final boolean required) {
-		//noinspection RedundantCast
 		final BiConsumer<Object, IEventBus> registrar = (BiConsumer<Object, IEventBus>) EventRegistrarRegistryImpl.INSTANCE.getInstanceRegistrar(clazz);
 
 		if (registrar == null) {

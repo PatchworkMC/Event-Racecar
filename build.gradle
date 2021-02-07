@@ -1,24 +1,19 @@
 buildscript {
 	repositories {
-		jcenter()
-	}
-	dependencies {
-		classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
+		mavenCentral()
 	}
 }
+
 plugins {
 	id 'checkstyle'
 	id 'maven'
 	id 'java-library'
-	id 'eclipse'
-	id 'idea'
 	id 'maven-publish'
-	id 'com.jfrog.bintray' version '1.8.4'
 }
-apply plugin: 'com.github.johnrengelman.shadow'
+
 sourceCompatibility = 1.8
 def ENV = System.getenv()
-if (ENV.bintray_user && ENV.bintray_key) {
+if (ENV.MAVEN_PASSWORD) {
 	def versionName = System.getenv("GITHUB_REF")
 	versionName = versionName.substring(10)
 	if (versionName.startsWith("v")) {
@@ -32,7 +27,7 @@ if (ENV.bintray_user && ENV.bintray_key) {
 }
 
 group 'net.patchworkmc'
-archivesBaseName = 'patchwork-eventbus'
+archivesBaseName = 'event-racecar'
 
 repositories {
 	mavenCentral()
@@ -49,65 +44,29 @@ dependencies {
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = 'sources'
+	archiveClassifier.set('sources')
 	from sourceSets.main.allSource
-}
-
-shadowJar {
-	dependencies {
-		exclude(dependency('org.apache.logging.log4j:log4j-api:2.8.1'))
-		exclude(dependency('com.google.code.findbugs:jsr305:3.0.2'))
-	}
-}
-
-bintray {
-	user = project.hasProperty('bintrayUser') ? project.getProperty('bintrayUser') : System.getenv('bintray_user')
-	key = project.hasProperty('bintrayKey') ? project.getProperty('bintrayKey') : System.getenv('bintray_key')
-	publish = true
-	override = true
-	publications = ['mavenJava']
-	pkg {
-		repo = project.bintrayRepo
-		name = project.name
-		user = bintray.user
-		userOrg = project.repoOwner
-		licenses = [project.codeLicense]
-		desc = project.description
-		websiteUrl = "https://github.com/${project.repoOwner}/${project.repoName}"
-		issueTrackerUrl = "https://github.com/${project.repoOwner}/${project.repoName}/issues"
-		vcsUrl = "https://github.com/${project.repoOwner}/${project.repoName}.git"
-		publicDownloadNumbers = true
-
-		githubRepo = "${project.repoOwner}/${project.repoName}"
-		version {
-			name = project.version
-			released = new Date()
-		}
-	}
 }
 
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			pom {
-				name = project.name
-				description = project.description
-				url = "https://github.com/${project.repoOwner}/${project.repoName}"
-				licenses {
-					license {
-						name = project.codeLicense
-					}
-				}
-
-				scm {
-					url = "https://github.com/${project.repoOwner}/${project.repoName}"
-				}
-			}
-
 			// add all the jars that should be included when publishing to maven
 			afterEvaluate {
-				artifact shadowJar
+				artifact jar
 				artifact sourcesJar
+			}
+		}
+	}
+
+	repositories {
+		if (ENV.MAVEN_PASSWORD) {
+			maven {
+				url 'https://maven.patchworkmc.net/releases'
+				credentials {
+					username "patchworkmc"
+					password ENV.MAVEN_PASSWORD
+				}
 			}
 		}
 	}

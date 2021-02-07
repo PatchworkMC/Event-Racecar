@@ -4,4 +4,4 @@ pluginManagement {
 		gradlePluginPortal()
 	}
 }
-rootProject.name = 'patchwork-eventbus'
+rootProject.name = 'event-racecar'
