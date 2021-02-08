@@ -37,7 +37,10 @@ repositories {
 }
 
 dependencies {
+    // For normal use
     implementation 'net.patchworkmc:event-racecar:VERSION'
+    // With TypeTools shaded (what we JiJ in patchwork-api)
+    implementation 'net.patchworkmc:event-racecar:VERSION:with-typetools'
 }
 ```
 ## License

@@ -2,6 +2,9 @@ buildscript {
 	repositories {
 		mavenCentral()
 	}
+	dependencies {
+		classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
+	}
 }
 
 plugins {
@@ -10,6 +13,7 @@ plugins {
 	id 'java-library'
 	id 'maven-publish'
 }
+apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = 1.8
 def ENV = System.getenv()
@@ -42,6 +46,15 @@ dependencies {
 	implementation 'com.google.code.findbugs:jsr305:3.0.2'
 	implementation 'net.jodah:typetools:0.8.+'
 }
+shadowJar {
+	dependencies {
+		exclude(dependency('org.apache.logging.log4j:log4j-api:2.8.1'))
+		exclude(dependency('com.google.code.findbugs:jsr305:3.0.2'))
+	}
+
+	archiveClassifier.set("with-typetools")
+}
+build.finalizedBy shadowJar
 
 task sourcesJar(type: Jar, dependsOn: classes) {
 	archiveClassifier.set('sources')
@@ -54,6 +67,7 @@ publishing {
 			// add all the jars that should be included when publishing to maven
 			afterEvaluate {
 				artifact jar
+				artifact shadowJar
 				artifact sourcesJar
 			}
 		}
